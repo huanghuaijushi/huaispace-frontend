@@ -1,85 +1,89 @@
-<script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
-  <RouterView />
+  <div class="app-wrapper">
+    <GlobalHeader :visible="showHeader" :solid="solidHeader" />
+    <HomeView />
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+<script setup lang="ts">
+import { onMounted, onUnmounted, ref } from 'vue'
+import HomeView from './views/HomeView.vue'
+import GlobalHeader from '@/components/GlobalHeader.vue'
+
+const showHeader = ref(true)
+const solidHeader = ref(false)
+let lastScrollY = window.scrollY
+
+// const onScroll = () => {
+//   const currentScrollY = window.scrollY
+//   const hero = document.querySelector('.hero')
+
+//   if (hero) {
+//     const rect = hero.getBoundingClientRect()
+//     // 如果 Hero 还在屏幕里 → 显示导航、透明
+//     if (rect.bottom > 0) {
+//       showHeader.value = true
+//       solidHeader.value = false
+//     } else {
+//       // Hero 离开了，就看滚动方向
+//       if (currentScrollY > lastScrollY) {
+//         // 向下滑 → 隐藏导航
+//         showHeader.value = false
+//       } else {
+//         // 向上滑 → 显示 + 固定导航栏
+//         showHeader.value = true
+//         solidHeader.value = true
+//       }
+//     }
+//   }
+
+//   lastScrollY = currentScrollY // 更新为最新位置
+// }
+const onScroll = () => {
+  const currentScrollY = window.scrollY
+  const hero = document.querySelector('.hero')
+
+  // 如果回到最顶部，就显示透明导航
+  if (currentScrollY === 0) {
+    showHeader.value = true
+    solidHeader.value = false
+  } else if (hero) {
+    const rect = hero.getBoundingClientRect()
+
+    // 如果 hero 已经离开视口
+    if (rect.bottom <= 0) {
+      if (currentScrollY > lastScrollY) {
+        // 向下滚动：隐藏导航
+        showHeader.value = false
+      } else {
+        // 向上滚动：显示 + 背景导航
+        showHeader.value = true
+        solidHeader.value = true
+      }
+    }
+  }
+
+  lastScrollY = currentScrollY
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+onMounted(() => {
+  window.addEventListener('scroll', onScroll)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', onScroll)
+})
+</script>
+
+<style>
+body {
+  margin: 0;
 }
 
-nav {
+.app-wrapper {
+  position: relative;
   width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+  height: 100%;
+  overflow-x: hidden;
 }
 </style>
